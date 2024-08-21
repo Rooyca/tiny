@@ -49,6 +49,7 @@ pub(crate) const MSG_NICK_SUFFIX_LEN: usize = 2;
 pub(crate) struct Timestamp {
     hour: i32,
     min: i32,
+    seg: i32,
 }
 
 // 80 characters. TODO: We need to make sure we don't need more whitespace than that. We should
@@ -58,13 +59,13 @@ static WHITESPACE: &str =
 
 impl Timestamp {
     /// The width of a timestamp plus a space.
-    pub(crate) const WIDTH: usize = 6;
+    pub(crate) const WIDTH: usize = 9;
 
     /// Spaces for a timestamp slot in aligned layout.
     pub(crate) const BLANK: &'static str = "      ";
 
     fn stamp(&self) -> String {
-        format!("{:02}:{:02} ", self.hour, self.min)
+        format!("{:02}:{:02}:{:02} ", self.hour, self.min, self.seg)
     }
 }
 
@@ -73,6 +74,7 @@ impl From<Tm> for Timestamp {
         Timestamp {
             hour: tm.tm_hour,
             min: tm.tm_min,
+            seg: tm.tm_sec,
         }
     }
 }
@@ -246,12 +248,7 @@ impl MessagingUI {
     /// showing the timestamp.
     fn add_timestamp(&mut self, ts: Timestamp) {
         if let Some(ts_) = self.last_ts {
-            if ts_ != ts {
-                self.msg_area.add_text(&ts.stamp(), SegStyle::Timestamp);
-            } else if self.msg_area.layout().is_aligned() {
-                self.msg_area
-                    .add_text(Timestamp::BLANK, SegStyle::Timestamp);
-            }
+            self.msg_area.add_text(&ts.stamp(), SegStyle::Timestamp);
         } else {
             self.msg_area.add_text(&ts.stamp(), SegStyle::Timestamp);
         }
